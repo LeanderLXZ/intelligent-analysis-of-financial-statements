@@ -10,6 +10,7 @@ src/.ipynb_checkpoints/
 .idea/
 data/
 venv/
+alassea-lome/
 token.txt
 *.jpg
 *.csv
