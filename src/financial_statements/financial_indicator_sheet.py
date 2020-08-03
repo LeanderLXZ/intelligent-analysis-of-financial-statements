@@ -36,4 +36,5 @@ for ts_code in tqdm(df_all['ts_code'].values):
     df = df.append(df_i)
 df = df.reset_index(drop=True)
 
-df.to_csv('../财务信息表/财务指标表.csv', index=False)
+df.to_csv('../../data/financial_statements/'
+          'financial_indicator_sheet.csv', index=False)

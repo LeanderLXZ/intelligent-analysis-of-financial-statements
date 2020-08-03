@@ -28,4 +28,4 @@ for list_status in ['L', 'D', 'P']:
     
 df = pd.concat(df_list)
 
-df.to_csv('../财务信息表/股票基础信息表.csv', index=False)
+df.to_csv('../../data/financial_statements/stock_basic_sheet.csv', index=False)

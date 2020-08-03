@@ -35,4 +35,4 @@ for ts_code in tqdm(df_all['ts_code'].values):
     df = df.append(df_i)
 df = df.reset_index(drop=True)
 
-df.to_csv('../财务信息表/资产负债表.csv', index=False)
+df.to_csv('../../data/financial_statements/balance_sheet.csv', index=False)

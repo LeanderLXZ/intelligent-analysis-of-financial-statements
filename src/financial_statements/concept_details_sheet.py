@@ -29,7 +29,8 @@ for code in tqdm(df_all['code'].values):
     df = df.append(df_i)
 df = df.reset_index(drop=True)
 
-df.to_csv('../财务信息表/概念股明细表-按概念排列.csv', index=False)
+df.to_csv('../../data/financial_statements/'
+          'concept_details_sheet_by_concept.csv', index=False)
 
 
 # 股票列表
@@ -58,4 +59,5 @@ for ts_code in tqdm(df_all['ts_code'].values):
     df = df.append(df_i)
 df = df.reset_index(drop=True)
 
-df.to_csv('../财务信息表/概念股明细表-按股票排列.csv', index=False)
+df.to_csv('../../data/financial_statements/'
+          'concept_details_sheet_by_stocks.csv.csv', index=False)

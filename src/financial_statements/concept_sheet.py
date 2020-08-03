@@ -18,4 +18,4 @@ tushare_api = ts.pro_api()
 # 概念分类表
 df = tushare_api.concept(src='ts')
 
-df.to_csv('../财务信息表/概念股分类表.csv', index=False)
+df.to_csv('../../data/financial_statements/concept_sheet.csv', index=False)
