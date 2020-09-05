@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from pandas import datetime as dt
 from tqdm import tqdm
+from utils import *
 
 
-with open('token.txt', 'r') as f:
+with open('../../tushare_token.txt', 'r') as f:
     token = f.readline()
 
 ts.set_token(token)
@@ -18,7 +19,8 @@ tushare_api = ts.pro_api()
 # 股票列表
 df_list = []
 for list_status in ['L', 'D', 'P']:
-    df_i = tushare_api.stock_basic(
+    df_i = safe_get(
+        tushare_api.stock_basic,
         exchange='',
         list_status=list_status,
         fields='ts_code, symbol, name, area, industry, fullname, enname,'

@@ -11,7 +11,7 @@ src/.ipynb_checkpoints/
 data/
 venv/
 alassea-lome/
-token.txt
+tushare_token.txt
 *.jpg
 *.csv
 *.html

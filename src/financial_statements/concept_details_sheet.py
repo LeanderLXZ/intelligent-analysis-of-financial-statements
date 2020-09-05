@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from pandas import datetime as dt
 from tqdm import tqdm
+from utils import *
 
 
-with open('token.txt', 'r') as f:
+with open('../../tushare_token.txt', 'r') as f:
     token = f.readline()
 
 ts.set_token(token)
@@ -22,8 +23,11 @@ df_all = tushare_api.concept(src='ts')
 # 概念股明细表
 df = pd.DataFrame()
 for code in tqdm(df_all['code'].values):
-    df_i = tushare_api.concept_detail(
-        id=code, fields='id, concept_name, ts_code, name, in_date, out_date')
+    df_i = safe_get(
+        tushare_api.concept_detail,
+        id=code, 
+        fields='id, concept_name, ts_code, name, in_date, out_date'
+        )
     df_i = df_i.drop_duplicates()
     df_i.insert(0, 'code', [c[:6] for c in df_i['ts_code']])
     df = df.append(df_i)

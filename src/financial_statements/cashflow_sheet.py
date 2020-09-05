@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from pandas import datetime as dt
 from tqdm import tqdm
+from utils import *
 
 
-with open('token.txt', 'r') as f:
+with open('../../tushare_token.txt', 'r') as f:
     token = f.readline()
 
 ts.set_token(token)
@@ -29,7 +30,8 @@ df_all = pd.concat(df_list)
 # 现金流量表
 df = pd.DataFrame()
 for ts_code in tqdm(df_all['ts_code'].values):
-    df_i = tushare_api.cashflow(
+    df_i = safe_get(
+        tushare_api.cashflow,
         ts_code=ts_code,
         fields=
         'ts_code, ann_date, f_ann_date, end_date, comp_type, report_type,'
