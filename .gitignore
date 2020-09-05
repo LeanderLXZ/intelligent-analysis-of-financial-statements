@@ -21,3 +21,4 @@ token.txt
 *.xls
 *.xlsx
 *.log
+._*
