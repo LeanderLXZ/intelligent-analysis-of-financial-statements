@@ -701,6 +701,6 @@ if __name__ == '__main__':
         data_path='../../data/financial_statements',
         classification_path='../../data/classification',
         save_path='../../data/standard_dataset',
-        info_path='../../data/stocks_information/stocks_info_20210611.csv'
+        info_path='../../data/stocks_information/stocks_info-20210611.csv'
     ).main()
     
