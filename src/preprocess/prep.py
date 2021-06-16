@@ -26,12 +26,14 @@ class DataPreprocess(object):
     def __init__(self,
                  data_path,
                  classification_path,
+                 delist_path,
                  save_path,
                  info_path,
                  drop_list=[]):
         
         self.data_path = data_path
         self.classification_path = classification_path
+        self.delist_path = delist_path
         self.save_path = save_path
         self.drop_list = drop_list
         check_dirs([self.save_path])
@@ -76,8 +78,8 @@ class DataPreprocess(object):
             (self.df_info['listStatusCD'] == 'O')]['ticker'])
         return list(new_listed)
     
-    def get_delisted(self):
-    
+    def get_delisted_tickers(self):
+        
         # Copy halt dataframe
         df_delist = self.df_info.copy()
 
@@ -97,7 +99,13 @@ class DataPreprocess(object):
         # Delete duplicates (with different halt dates)
         df_delist.drop_duplicates(inplace=True)
 
-        return set(df_delist['ticker'])
+        delisted = set(df_delist['ticker'])
+        
+        df_delist = pd.read_csv(self.delist_path, dtype={'TICKER': str})
+        df_delist = df_delist[df_delist['DELETE_FLAG_FINAL'] == 1]
+        delisted_delete = set(df_delist['TICKER'])
+        
+        return delisted, delisted_delete
     
     def get_concat_df(self,
                       data_path,
@@ -155,8 +163,6 @@ class DataPreprocess(object):
         df.drop(df[df['ticker'].apply(
             lambda x: (x[0] in ['9', 'A', '2']) | (x in self.drop_list)
         )].index, inplace=True)
-
-        # Delete unlisted Companies
         
         # If is not balance sheet, Drop Q3 and then rename report type
         if 'CQ3' in set(df['reportType']):
@@ -286,12 +292,17 @@ class DataPreprocess(object):
             df_feature_dict = pd.DataFrame(
                 columns=['COLUMN_NAME', 'CN_NAME', 'ANNOTATION'])
             for en_name, cn_name, annotation in self.feature_dict[file_name][1]:
-                df_feature_dict = df_feature_dict.append(
-                    pd.DataFrame({
-                            'COLUMN_NAME': [en_name],
-                            'CN_NAME': [cn_name],
-                            'ANNOTATION': [annotation]
-                        }), ignore_index=True)
+                if en_name in df.columns:
+                    df_feature_dict = df_feature_dict.append(
+                        pd.DataFrame({
+                                'COLUMN_NAME': [en_name],
+                                'CN_NAME': [cn_name],
+                                'ANNOTATION': [annotation]
+                            }), ignore_index=True)
+                    
+            # print(df_feature_dict.shape[0], len(df.columns))
+            # print(df_feature_dict['COLUMN_NAME'], df.columns)
+            assert df_feature_dict.shape[0] == len(df.columns)
             df_feature_dict.to_csv(
                 join(
                     self.save_path,
@@ -299,12 +310,7 @@ class DataPreprocess(object):
                         + file_name + '.csv'),
                 index=False)
             
-    def get_ts_df(self, sheet_type, df_ts):
-            
-            df_total_2 = pd.read_csv(
-                join(self.save_path,
-                     'total_sheet_2/csv/' + sheet_type + '.csv'),
-                dtype={'ticker': str})
+    def get_ts_df(self, df_total_2, sheet_type, df_ts):
             
             dict_into_date = {}
             for _, row in df_ts.iterrows():
@@ -640,14 +646,6 @@ class DataPreprocess(object):
             join(self.save_path, 'total_sheet_3(standard_2)/excel')
         ])
         
-        # TODO: remove delisted companies
-        
-        # TODO: remove ST companies
-        
-        # TODO: remove pre-listed data
-        
-        # TODO: remove companies with revenue less than a threshold
-        
         df_ts = pd.read_csv(
             join(self.data_path, 'bank_security_insurance.csv'),
             dtype={'ticker': str})
@@ -665,8 +663,35 @@ class DataPreprocess(object):
         
         for sheet_type in ['income', 'cash_flow', 'balance']:
             
+            # Get total data 2
+            df_total_2 = pd.read_csv(
+                join(self.save_path,
+                     'total_sheet_2/csv/' + sheet_type + '.csv'),
+                dtype={'ticker': str})
+            
+            # TODO: remove delisted companies
+            delisted, delisted_delete = self.get_delisted_tickers()
+            delete_tickers = []
+            for t, f in df_total_2.groupby('ticker').apply(
+                    lambda x: ('2020-12-31' not in tuple(x['endDate']))
+                    and (len(tuple(x['endDate'])) > 0)).iteritems():
+                if f and t not in delisted:
+                    delete_tickers.append(t)
+            delisted_delete = delisted_delete.union(delete_tickers)
+                    
+            df_total_2.drop(df_total_2[
+                df_total_2['ticker'].apply(
+                    lambda x: x in delisted_delete)
+                ].index, inplace=True)
+            
+            # TODO: remove ST companies
+            
+            # TODO: remove pre-listed data
+            
+            # TODO: remove companies with revenue less than a threshold
+            
             # Get and save time series data
-            df_total_3 = self.get_ts_df(sheet_type, df_ts)
+            df_total_3 = self.get_ts_df(df_total_2, sheet_type, df_ts)
 
             # Drop null and 0 columns
             self.drop_null_zero_columns(
@@ -701,6 +726,10 @@ if __name__ == '__main__':
         data_path='../../data/financial_statements',
         classification_path='../../data/classification',
         save_path='../../data/standard_dataset',
-        info_path='../../data/stocks_information/stocks_info-20210611.csv'
+        info_path='../../data/stocks_information/stocks_info-20210611.csv',
+        delist_path='../../data/stocks_information/delist-delete-20210611.csv',
+        drop_list=[
+            '000991', '002257', '002525',
+            '300060', '001872', '001914', '601360']
     ).main()
     
